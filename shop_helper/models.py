@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 
@@ -27,6 +28,7 @@ class Product(models.Model):
 class Recipe(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название рецепта')
     products = models.ManyToManyField('Product', related_name='recipes', through='RecipesProducts', verbose_name='Продукты')
+    owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, default=1, verbose_name='Пользователь')
 
     def __str__(self):
         return self.name
