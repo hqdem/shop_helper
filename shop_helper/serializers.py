@@ -15,14 +15,18 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class RecipesProductsSerializer(serializers.ModelSerializer):
-    product = ProductSerializer()
+    product = serializers.SerializerMethodField()
 
     class Meta:
         model = RecipesProducts
         fields = [
             'product',
-            'product_count',
         ]
+
+    def get_product(self, obj):
+        product_data = ProductSerializer(obj.product).data
+        product_data['count'] = obj.product_count
+        return product_data
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -43,6 +47,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'name',
             'products'
         ]
+        read_only_fields = ['id']
 
     def get_products(self, obj):
         return RecipesProductsSerializer(obj.recipes_products, many=True).data

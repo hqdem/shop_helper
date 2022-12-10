@@ -39,7 +39,7 @@ class Recipe(models.Model):
 
 
 class RecipesProducts(models.Model):
-    recipe = models.ForeignKey('Recipe', on_delete=models.PROTECT, related_name='recipes_products', verbose_name='Рецепт')
+    recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE, related_name='recipes_products', verbose_name='Рецепт')
     product = models.ForeignKey('Product', on_delete=models.PROTECT, related_name='products_recipes', verbose_name='Продукт')
     product_count = models.IntegerField(verbose_name='Количество продукта')
 
