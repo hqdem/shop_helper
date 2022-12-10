@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.response import Response
+from rest_framework import status
 
 from .models import Recipe, RecipesProducts, Product
 from .serializers import RecipeSerializer
@@ -26,4 +27,4 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         RecipesProducts.objects.bulk_create(recipe_to_products_list)
 
-        return Response(RecipeSerializer(recipe).data)
+        return Response(self.get_serializer(recipe).data, status=status.HTTP_201_CREATED)

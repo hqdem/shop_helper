@@ -15,7 +15,10 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    search_fields = ['name']
+    search_fields = ['name', 'id']
+    list_display = ['id', 'name', 'category']
+    readonly_fields = ['id']
+    list_editable = ['category']
 
 
 admin.site.register(Category)
