@@ -44,6 +44,8 @@ INSTALLED_APPS = [
 
     # 3-rd party
     'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
     'debug_toolbar',
 ]
 
@@ -138,3 +140,12 @@ AUTH_USER_MODEL = 'accounts.MyUser'
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+# DJANGO REST FRAMEWORK
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
