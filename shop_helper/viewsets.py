@@ -30,7 +30,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         data = request.data
         try:
-            product_id = data['id']
+            product_id = self.kwargs['pk']
             product_name = data['name']
             category_name = data['category']
             product = get_object_or_404(Product, id=product_id)
