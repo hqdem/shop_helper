@@ -3,12 +3,22 @@ from rest_framework import serializers
 from .models import Recipe, Product, Category, RecipesProducts
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = [
+            'id',
+            'name'
+        ]
+
+
 class ProductSerializer(serializers.ModelSerializer):
-    category = serializers.CharField(source='category.name')
+    category = CategorySerializer()
 
     class Meta:
         model = Product
         fields = [
+            'id',
             'name',
             'category',
         ]
@@ -29,14 +39,6 @@ class RecipesProductsSerializer(serializers.ModelSerializer):
         return product_data
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = [
-            'name'
-        ]
-
-
 class RecipeSerializer(serializers.ModelSerializer):
     products = serializers.SerializerMethodField()
 
@@ -47,7 +49,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             'name',
             'products'
         ]
-        read_only_fields = ['id']
 
     def get_products(self, obj):
         return RecipesProductsSerializer(obj.recipes_products, many=True).data
