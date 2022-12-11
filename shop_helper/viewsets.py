@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework import status
 
 from .models import Recipe, RecipesProducts, Product, Category
@@ -45,7 +46,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.prefetch_related('recipes_products', 'recipes_products__product',
-                                               'recipes_products__product__category').all()
+                                               'recipes_products__product__category').select_related('owner').all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
@@ -65,5 +66,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
             RecipesProducts.objects.bulk_create(recipe_to_products_list)
 
             return Response(self.get_serializer(recipe).data, status=status.HTTP_201_CREATED)
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def add_product(self, request, pk):
+        data = request.data
+        try:
+            recipe_id = pk
+            product_id = data['product_id']
+            count = data['count']
+
+            instance, created = RecipesProducts.objects.get_or_create(recipe_id=recipe_id, product_id=product_id,
+                                                                      defaults={'product_count': count})
+            if created:
+                return Response(status=status.HTTP_201_CREATED)
+            instance.product_count = count
+            instance.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def remove_product(self, request, pk):
+        data = request.data
+        try:
+            recipe_id = pk
+            product_id = data['product_id']
+            instance = get_object_or_404(RecipesProducts, recipe_id=recipe_id, product_id=product_id)
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
