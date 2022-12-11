@@ -5,8 +5,15 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 
-from .models import Recipe, RecipesProducts, Product, Category
-from .serializers import RecipeSerializer, ProductSerializer
+from .models import Recipe, RecipesProducts, Product
+from .serializers import (
+    RecipeSerializer,
+    ProductSerializer,
+    ProductCreateUpdateSerilizer,
+    RecipeCreateSerializer,
+    RecipeAddProductSerializer,
+    RecipeRemoveProductSerializer
+)
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 
 
@@ -17,31 +24,24 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        try:
-            product_name = data['name']
-            category_name = data['category']
-            category, _ = Category.objects.get_or_create(name=category_name)
-            product, created = Product.objects.get_or_create(name=product_name, category=category)
+
+        serializer = ProductCreateUpdateSerilizer(data=data)
+        if serializer.is_valid():
+            product, created = serializer.save()
             if created:
                 return Response(ProductSerializer(product).data, status=status.HTTP_201_CREATED)
             return Response(ProductSerializer(product).data, status=status.HTTP_200_OK)
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
         data = request.data
-        try:
-            product_id = self.kwargs['pk']
-            product_name = data['name']
-            category_name = data['category']
-            product = get_object_or_404(Product, id=product_id)
-            category, _ = Category.objects.get_or_create(name=category_name)
-            product.name = product_name
-            product.category = category
-            product.save()
+        product = self.get_object()
+
+        serializer = ProductCreateUpdateSerilizer(product, data=data)
+        if serializer.is_valid():
+            product = serializer.save()
             return Response(ProductSerializer(product).data, status=status.HTTP_200_OK)
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -52,49 +52,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        try:
-            recipe_name = data['name']
-            recipe_owner = request.user
-            product_names_to_count = {item['name']: item['count'] for item in data['products']}
-
-            recipe = Recipe.objects.create(name=recipe_name, owner=recipe_owner)
-
-            recipe_to_products_list = [
-                RecipesProducts(recipe=recipe, product=get_object_or_404(Product, name=name),
-                                product_count=product_names_to_count[name]) for name in product_names_to_count.keys()]
-
-            RecipesProducts.objects.bulk_create(recipe_to_products_list)
-
+        serializer = RecipeCreateSerializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            recipe = serializer.save()
             return Response(self.get_serializer(recipe).data, status=status.HTTP_201_CREATED)
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def add_product(self, request, pk):
         data = request.data
-        try:
-            recipe_id = pk
-            product_id = data['product_id']
-            count = data['count']
-
-            instance, created = RecipesProducts.objects.get_or_create(recipe_id=recipe_id, product_id=product_id,
-                                                                      defaults={'product_count': count})
+        serializer = RecipeAddProductSerializer(data=data, context={'pk': pk})
+        if serializer.is_valid():
+            product_recipe, created = serializer.save()
             if created:
                 return Response(status=status.HTTP_201_CREATED)
-            instance.product_count = count
-            instance.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def remove_product(self, request, pk):
         data = request.data
-        try:
+        serializer = RecipeRemoveProductSerializer(data=data)
+        if serializer.is_valid():
             recipe_id = pk
-            product_id = data['product_id']
+            product_id = serializer.validated_data['product_id']
             instance = get_object_or_404(RecipesProducts, recipe_id=recipe_id, product_id=product_id)
             instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
