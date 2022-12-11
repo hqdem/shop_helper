@@ -27,6 +27,21 @@ class ProductViewSet(viewsets.ModelViewSet):
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    def update(self, request, *args, **kwargs):
+        data = request.data
+        try:
+            product_id = data['id']
+            product_name = data['name']
+            category_name = data['category']
+            product = get_object_or_404(Product, id=product_id)
+            category, _ = Category.objects.get_or_create(name=category_name)
+            product.name = product_name
+            product.category = category
+            product.save()
+            return Response(ProductSerializer(product).data, status=status.HTTP_200_OK)
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.prefetch_related('recipes_products', 'recipes_products__product',
