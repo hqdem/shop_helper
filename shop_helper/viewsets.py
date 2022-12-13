@@ -13,7 +13,8 @@ from .serializers import (
     ProductCreateUpdateSerilizer,
     RecipeCreateSerializer,
     RecipeAddProductSerializer,
-    RecipeRemoveProductSerializer
+    RecipeRemoveProductSerializer,
+    UserSerializer
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from .filters import RecipeByUserFilter
@@ -118,3 +119,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=pk)
         recipe.dislikes.remove(user)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'])
+    def likes(self, request, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+        likes = recipe.likes.all()
+        return Response(UserSerializer(likes, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'])
+    def dislikes(self, request, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+        dislikes = recipe.dislikes.all()
+        return Response(UserSerializer(dislikes, many=True).data, status=status.HTTP_200_OK)

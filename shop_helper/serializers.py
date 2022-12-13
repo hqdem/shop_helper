@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
@@ -119,3 +120,9 @@ class RecipeAddProductSerializer(serializers.Serializer):
 
 class RecipeRemoveProductSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ['id', 'username']
