@@ -4,6 +4,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Recipe, RecipesProducts, Product
 from .serializers import (
@@ -15,12 +16,17 @@ from .serializers import (
     RecipeRemoveProductSerializer
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+from .filters import RecipeByUserFilter
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.select_related('category').all()
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['category']
+
+    def get_queryset(self):
+        return Product.objects.select_related('category').all()
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -49,6 +55,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                                'recipes_products__product__category').select_related('owner').all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    filter_backends = [RecipeByUserFilter]
+
+    # filterset_fields = ['owner__id']
 
     def create(self, request, *args, **kwargs):
         data = request.data

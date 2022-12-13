@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     # 3-rd party
     'rest_framework',
+    'django_filters',
     'rest_framework.authtoken',
     'djoser',
     'debug_toolbar',
@@ -147,5 +148,5 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-    ]
+    ],
 }
