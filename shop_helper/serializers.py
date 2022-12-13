@@ -42,6 +42,7 @@ class RecipesProductsSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     products = serializers.SerializerMethodField()
+    owner = serializers.IntegerField(source='owner__id', read_only=True)
 
     class Meta:
         model = Recipe

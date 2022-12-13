@@ -29,6 +29,8 @@ class Recipe(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название рецепта')
     products = models.ManyToManyField('Product', related_name='recipes', through='RecipesProducts', verbose_name='Продукты')
     owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, default=1, verbose_name='Пользователь')
+    likes = models.ManyToManyField(get_user_model(), blank=True, related_name='likes', verbose_name='Лайки')
+    dislikes = models.ManyToManyField(get_user_model(), blank=True, related_name='dislikes', verbose_name='Дизлайки')
 
     def __str__(self):
         return self.name

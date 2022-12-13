@@ -57,8 +57,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     filter_backends = [RecipeByUserFilter]
 
-    # filterset_fields = ['owner__id']
-
     def create(self, request, *args, **kwargs):
         data = request.data
         serializer = RecipeCreateSerializer(data=data, context={'request': request})
@@ -88,3 +86,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
             instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def add_like(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        if user in recipe.dislikes.all():
+            recipe.dislikes.remove(user)
+        recipe.likes.add(user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'])
+    def add_dislike(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        if user in recipe.likes.all():
+            recipe.likes.remove(user)
+        recipe.dislikes.add(user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'])
+    def remove_like(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        recipe.likes.remove(user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'])
+    def remove_dislike(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        recipe.dislikes.remove(user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
