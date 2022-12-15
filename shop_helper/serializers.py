@@ -126,3 +126,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ['id', 'username']
+
+
+class UserSubscribeSerializer(serializers.Serializer):
+    user = serializers.IntegerField()
