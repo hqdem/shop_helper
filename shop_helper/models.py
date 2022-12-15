@@ -53,3 +53,8 @@ class RecipesProducts(models.Model):
     class Meta:
         verbose_name = 'Продукт в рецепте'
         verbose_name_plural = 'Продукты в рецептах'
+
+
+class ShoppingList(models.Model):
+    owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='shopping_list', verbose_name='Список покупок')
+    products = models.ManyToManyField('Product', verbose_name='Продукты')
