@@ -11,6 +11,7 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = [
         ProductInline
     ]
+    list_display = ['name', 'owner', 'created_at']
     search_fields = ['product__name']
 
 

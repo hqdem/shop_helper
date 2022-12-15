@@ -31,6 +31,7 @@ class Recipe(models.Model):
     owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, default=1, verbose_name='Пользователь')
     likes = models.ManyToManyField(get_user_model(), blank=True, related_name='likes', verbose_name='Лайки')
     dislikes = models.ManyToManyField(get_user_model(), blank=True, related_name='dislikes', verbose_name='Дизлайки')
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True, verbose_name='Дата создания')
 
     def __str__(self):
         return self.name
