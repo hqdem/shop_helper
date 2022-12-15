@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Recipe, RecipesProducts, Product
+from .models import Recipe, RecipesProducts, Product, ShoppingList
 from .serializers import (
     RecipeSerializer,
     ProductSerializer,
@@ -14,7 +14,10 @@ from .serializers import (
     RecipeCreateSerializer,
     RecipeAddProductSerializer,
     RecipeRemoveProductSerializer,
-    UserSerializer
+    UserSerializer,
+    ShoppingListSerializer,
+    ShoppingListCreateSerializer,
+    ProductToShoppingListSerializer
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from .filters import RecipeByUserFilter, RecipeBySubscribersFilter
@@ -48,6 +51,65 @@ class ProductViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             product = serializer.save()
             return Response(ProductSerializer(product).data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ShoppingListViewSet(viewsets.GenericViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ShoppingListSerializer
+
+    def get_object(self):
+        return get_object_or_404(ShoppingList.objects.prefetch_related('products__category').select_related('owner'),
+                                 owner=self.request.user)
+
+    @action(methods=['get'], detail=False)
+    def get_list(self, request):
+        return Response(ShoppingListSerializer(self.get_object()).data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=False)
+    def create_list(self, request):
+        data = request.data
+        serializer = ShoppingListCreateSerializer(data=data)
+        if serializer.is_valid():
+            serializer_data = serializer.data
+            product_ids = [product_id['product_id'] for product_id in serializer_data['products']]
+            name = serializer_data['name']
+
+            user = request.user
+            products = Product.objects.filter(id__in=product_ids)
+
+            instance, created = ShoppingList.objects.prefetch_related('products__category').select_related(
+                'owner').get_or_create(owner=user)
+            if created:
+                instance.name = name
+                instance.products.add(*products)
+                instance.save()
+                return Response(ShoppingListSerializer(instance).data, status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=False)
+    def add_product(self, request):
+        data = request.data
+        serializer = ProductToShoppingListSerializer(data=data)
+        if serializer.is_valid():
+            serializer_data = serializer.data
+            product = get_object_or_404(Product, pk=serializer_data['product_id'])
+            instance = self.get_object()
+            instance.products.add(product)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=False)
+    def remove_product(self, request):
+        data = request.data
+        serializer = ProductToShoppingListSerializer(data=data)
+        if serializer.is_valid():
+            serializer_data = serializer.data
+            product = get_object_or_404(Product, pk=serializer_data['product_id'])
+            instance = self.get_object()
+            instance.products.remove(product)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 

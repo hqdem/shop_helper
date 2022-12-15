@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from .models import Recipe, Product, Category, RecipesProducts
+from .models import Recipe, Product, Category, RecipesProducts, ShoppingList
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -130,3 +130,26 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserSubscribeSerializer(serializers.Serializer):
     user = serializers.IntegerField()
+
+
+class ShoppingListSerializer(serializers.ModelSerializer):
+    products = ProductSerializer(many=True)
+    owner = serializers.CharField(source='owner.username')
+
+    class Meta:
+        model = ShoppingList
+        fields = [
+            'id',
+            'name',
+            'owner',
+            'products',
+        ]
+
+
+class ProductToShoppingListSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+
+
+class ShoppingListCreateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
+    products = ProductToShoppingListSerializer(many=True)

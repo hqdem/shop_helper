@@ -3,13 +3,13 @@ from django.contrib import admin
 from .models import *
 
 
-class ProductInline(admin.TabularInline):
+class ProductRecipeInline(admin.TabularInline):
     model = Recipe.products.through
 
 
 class RecipeAdmin(admin.ModelAdmin):
     inlines = [
-        ProductInline
+        ProductRecipeInline
     ]
     list_display = ['name', 'owner', 'created_at']
     search_fields = ['product__name']
@@ -22,7 +22,12 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['category']
 
 
+class ShoppingListAdmin(admin.ModelAdmin):
+    list_display = ['name', 'owner']
+
+
 admin.site.register(Category)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(RecipesProducts)
+admin.site.register(ShoppingList, ShoppingListAdmin)

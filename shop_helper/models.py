@@ -56,5 +56,9 @@ class RecipesProducts(models.Model):
 
 
 class ShoppingList(models.Model):
-    owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='shopping_list', verbose_name='Список покупок')
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name='Название')
+    owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='shopping_list', verbose_name='Владелец')
     products = models.ManyToManyField('Product', verbose_name='Продукты')
+
+    def __str__(self):
+        return self.name
