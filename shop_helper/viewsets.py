@@ -62,11 +62,11 @@ class ShoppingListViewSet(viewsets.GenericViewSet):
         return get_object_or_404(ShoppingList.objects.prefetch_related('products__category').select_related('owner'),
                                  owner=self.request.user)
 
-    @action(methods=['get'], detail=False)
+    @action(detail=False, methods=['get'])
     def get_list(self, request):
         return Response(ShoppingListSerializer(self.get_object()).data, status=status.HTTP_200_OK)
 
-    @action(methods=['post'], detail=False)
+    @action(detail=False, methods=['post'])
     def create_list(self, request):
         data = request.data
         serializer = ShoppingListCreateSerializer(data=data)
@@ -88,7 +88,7 @@ class ShoppingListViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=['post'], detail=False)
+    @action(detail=False, methods=['post'])
     def add_product(self, request):
         data = request.data
         serializer = ProductToShoppingListSerializer(data=data)
@@ -100,7 +100,7 @@ class ShoppingListViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=['post'], detail=False)
+    @action(detail=False, methods=['post'])
     def remove_product(self, request):
         data = request.data
         serializer = ProductToShoppingListSerializer(data=data)
@@ -193,3 +193,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=pk)
         dislikes = recipe.dislikes.all()
         return Response(UserSerializer(dislikes, many=True).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def add_to_shopping_list(self, request, pk):
+        user = request.user
+        products = self.get_object().products.all()
+        shopping_list = get_object_or_404(ShoppingList, owner=user)
+        shopping_list.products.add(*products)
+        return Response(status=status.HTTP_204_NO_CONTENT)

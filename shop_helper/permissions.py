@@ -10,6 +10,6 @@ class IsAdminOrReadOnly(permissions.IsAdminUser):
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS or view.action in ['add_like', 'add_dislike', 'remove_like', 'remove_dislike']:
+        if request.method in permissions.SAFE_METHODS or view.action in ['add_like', 'add_dislike', 'remove_like', 'remove_dislike', 'add_to_shopping_list']:
             return True
         return obj.owner == request.user
