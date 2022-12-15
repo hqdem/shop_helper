@@ -17,7 +17,7 @@ from .serializers import (
     UserSerializer
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from .filters import RecipeByUserFilter
+from .filters import RecipeByUserFilter, RecipeBySubscribersFilter
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -56,7 +56,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                                'recipes_products__product__category').select_related('owner').all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
-    filter_backends = [RecipeByUserFilter]
+    filter_backends = [RecipeByUserFilter, RecipeBySubscribersFilter]
 
     def create(self, request, *args, **kwargs):
         data = request.data
